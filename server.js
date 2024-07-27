@@ -55,16 +55,16 @@ async function build_html (dir, dbg){
     console.log("listing directory" + dir);
 
     let files = await list_files(dir);
-    dir = dir.split('/');
-    if (dir.at(dir.length-1) === "") dir.pop();
-    let parent = find_your_parents(dir);
-    let this_dir = dir.at(dir.length - 1);
+    let split = dir.split('/');
+    if (split.at(split.length-1) === "") split.pop();
+    let parent = find_your_parents(split);
+    let this_dir = split.at(split.length - 1);
     let top = this_dir === 'static';
     let this_path='/';
     let reading= false;
-    for (let i = 0 ; i < dir.length ; i++) {
-        if (dir.at(i) === 'static') reading = true;
-        if (reading) this_path+=dir.at(i)+'/';
+    for (let i = 0 ; i < split.length ; i++) {
+        if (split.at(i) === 'static') reading = true;
+        if (reading) this_path+=split.at(i)+'/';
     }
 
 
@@ -72,9 +72,11 @@ async function build_html (dir, dbg){
     let body = (top) ? '' : '<a href="'+parent+'" id="back-arrow">←</a>';
 
     if (files.length === 0) body +="<h1> EMPTY </h1> <br>"
-    files.forEach(file => {
-        body += (file[1]) ? '<h2>'+file[0] + '  <a href="'+this_path+file[0]+'">></a> <br></h2>': '<h2>'+file[0] + ' <a  href="'+this_path+file[0]+'">download</a></h2>';
-    })
+    for (const file of files) {
+        let file_info = fs.statSync(dir+file[0]);
+        let file_size = file_info.size / (1000);
+        body += (file[1]) ? '<h2>'+file[0] + 'Size: ' + file_size + 'kb <a href="'+this_path+file[0]+'">></a> <br></h2>': '<h2>'+file[0] + 'Size: ' + file_size + 'kb <a  href="'+this_path+file[0]+'"><img src="download.png" style="width:16px;height:16px;"alt="Download"></a></h2>';
+    }
 
     return "<!DOCTYPE html>\n" +
         "<html lang=\"en\">"
